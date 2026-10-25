@@ -778,6 +778,7 @@ class CompilationConfig:
         "vllm::qwen4_exp_qsa_prepare_with_output",
         "vllm::linear_attention",
         "vllm::qwen_gdn_attention_core",
+        "vllm::gated_delta_product_core",
         "vllm::qwen_gdn_attention_core_fused_norm_packed",
         "vllm::gdn_attention_core_xpu",
         "vllm::olmo_hybrid_gdn_full_forward",

@@ -149,6 +149,7 @@ _TEXT_GENERATION_MODELS = {
         "vllm.models.kimi_k3",
         "KimiLinearForCausalLM",
     ),
+    "KoiForCausalLM": ("koi", "KoiForCausalLM"),
     "Lfm2ForCausalLM": ("lfm2", "Lfm2ForCausalLM"),
     "Lfm2MoeForCausalLM": ("lfm2_moe", "Lfm2MoeForCausalLM"),
     "LagunaForCausalLM": ("laguna", "LagunaForCausalLM"),

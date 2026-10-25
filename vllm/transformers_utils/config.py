@@ -142,6 +142,7 @@ _CONFIG_REGISTRY: dict[str, type[PreTrainedConfig]] = LazyConfigDict(
     kimi_linear="KimiLinearConfig",
     kimi_vl="KimiVLConfig",
     kimi_k25="Kimi_K25Config",  # Upstream class, hub remote code uses old schema
+    koi="KoiConfig",
     muse_spark_dspark="MuseSparkDSparkConfig",
     musespark1x_text="MuseSpark1xTextConfig",
     muse_spark_text="MuseSparkTextConfig",
