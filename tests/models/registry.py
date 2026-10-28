@@ -650,6 +650,9 @@ _EMBEDDING_EXAMPLE_MODELS = {
         "jinaai/jina-embeddings-v5-text-small",
         trust_remote_code=True,
     ),
+    "Lfm2BidirectionalModel": _HfExamplesInfo(
+        "LiquidAI/LFM2.5-Embedding-350M",
+    ),
     "LlamaModel": _HfExamplesInfo("llama", is_available_online=False),
     "LlamaBidirectionalModel": _HfExamplesInfo(
         "nvidia/llama-nemotron-embed-1b-v2", trust_remote_code=True
@@ -1224,7 +1227,7 @@ _MULTIMODAL_EXAMPLE_MODELS = {
         "meta-models/Muse-Glimmer-30B",
     ),
     "MuseSparkForConditionalGeneration": _HfExamplesInfo(
-        "meta-models/Muse-Spark-1.2-816B-A42B-open",
+        "meta-models/Muse-Spark-Open-816B-A42B-NVFP4",
         is_available_online=False,
     ),
     "NVLM_D": _HfExamplesInfo("nvidia/NVLM-D-72B", trust_remote_code=True),
@@ -1599,8 +1602,8 @@ _SPECULATIVE_DECODING_EXAMPLE_MODELS = {
         is_available_online=False,
     ),
     "MuseSparkDSparkModel": _HfExamplesInfo(
-        "meta-models/Muse-Spark-1.2-816B-A42B-open",
-        speculative_model="meta-models/Muse-Spark-1.2-816B-A42B-open",
+        "meta-models/Muse-Spark-Open-816B-A42B-NVFP4",
+        speculative_model="Inferact/Muse-Spark-Open-DSpark",
         is_available_online=False,
     ),
     "Qwen3DSparkModel": _HfExamplesInfo(
