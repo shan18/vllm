@@ -94,3 +94,56 @@ def test_loop_cache_modes(vllm_runner, tmp_path, cache_mode):
             )
         attention_caches = 2 if cache_mode == "per_loop" else 1
         assert runner.apply_model(_cache_layout) == [(attention_caches, 2)]
+
+
+@pytest.mark.parametrize("fmt", ["MXFP8", "NVFP4"])
+@pytest.mark.parametrize("n,k", [(96, 256), (256, 256)])
+@pytest.mark.parametrize("batch", [1, 32, 512])
+@torch.inference_mode()
+def test_packed_linear(fmt, n, k, batch):
+    """Check packed decode/prefill numerics, small GDP gates and bias."""
+    from torch import nn
+    from torch.nn import functional as F
+
+    from vllm.model_executor.models.koi import install_packed_linear
+
+    generator = torch.Generator(device="cuda").manual_seed(2341)
+    layer = nn.Linear(k, n, device="cuda", dtype=torch.bfloat16)
+    layer.requires_grad_(False)
+    install_packed_linear(layer, fmt)
+    bias = torch.randn(n, device="cuda", generator=generator).bfloat16() * 0.01
+    layer.bias.copy_(bias)
+    if fmt == "MXFP8":
+        q = torch.randint(-8, 9, (n, k), device="cuda", generator=generator)
+        layer.weight.data = q.to(torch.float8_e4m3fn)
+        scales = torch.full((n, k // 32), 124, device="cuda", dtype=torch.uint8)
+        reference_weight = q.bfloat16() * 0.125  # E8M0 exponent: 124 - 127.
+    else:
+        q = torch.randint(0, 256, (n, k // 2), device="cuda", generator=generator)
+        layer.weight.data = q.to(torch.uint8)
+        scales = torch.full((n, k // 16), 0.5, device="cuda", dtype=torch.float8_e4m3fn)
+        layer.register_parameter(
+            "weight_scale_2",
+            nn.Parameter(torch.tensor(0.25, device="cuda"), requires_grad=False),
+        )
+        # Independent E2M1 decode, including the high/low nibble ordering.
+        lut = torch.tensor(
+            [0, 0.5, 1, 1.5, 2, 3, 4, 6, -0.0, -0.5, -1, -1.5, -2, -3, -4, -6],
+            device="cuda",
+            dtype=torch.bfloat16,
+        )
+        codes = torch.stack((q & 15, q >> 4), dim=-1).reshape(n, k)
+        reference_weight = lut[codes] * 0.125
+    layer.register_parameter("weight_scale", nn.Parameter(scales, requires_grad=False))
+    method = layer.quant_method
+    method.process_weights_after_loading(layer)
+    x = torch.randn(batch, k, device="cuda", generator=generator).bfloat16() * 0.1
+    actual = layer(x)
+    expected = F.linear(x, reference_weight, bias)
+    assert actual.dtype == torch.bfloat16
+    relative_rmse = (
+        (actual.float() - expected.float()).square().mean()
+        / expected.float().square().mean()
+    ).sqrt()
+    # BF16 Marlin and dense GEMM use different accumulation orders.
+    assert relative_rmse < 0.02

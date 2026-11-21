@@ -507,6 +507,9 @@ Some models are supported only via the [Transformers modeling backend](#transfor
 !!! note
     Currently, the ROCm version of vLLM supports Mistral and Mixtral only for context lengths up to 4096.
 
+!!! note "Koi NVFP4 checkpoints"
+    Koi supports searched NVFP4 checkpoints with per-matrix BF16/MXFP8/NVFP4 allocations, specified by `"koi_mixed":{"version":2,"allocation":"quantization_allocation.json","activations":"bfloat16"}` in `config.json` and a `formats` mapping from HF parameter names to precisions in the allocation file. Run `vllm serve <checkpoint> --dtype bfloat16` without `--quantization`; this path requires a Marlin-compatible NVIDIA CUDA GPU, untied embeddings, and the default TP=PP=1.
+
 ## List of Multimodal Language Models
 
 The following modalities are supported depending on the model:
